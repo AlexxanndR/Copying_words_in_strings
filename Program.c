@@ -6,8 +6,8 @@ void Repeat(char**, char*, char *, int, int);
 
 int main()
 {
-	char** str1 = 0;
-	char *str = 0, *str2 = 0;
+	char** str = 0;
+	char *str_dop = 0, *str_res = 0;
 	int n, m, n1, size;
 	do
 	{
@@ -18,13 +18,13 @@ int main()
 			rewind(stdin);
 			continue;
 		}
-		str1 = (char**)malloc(n * sizeof(char*));
-		if (!str1)
+		str = (char**)malloc(n * sizeof(char*));
+		if (!str)
 		{
-			free(str1);
+			free(str);
 			continue;
 		}
-		printf_s("Enter the dimension of the sentences: ");
+		printf_s("Allocate memory for sentences: ");
 		if (!(scanf_s("%d", &m)))
 		{
 			rewind(stdin);
@@ -32,64 +32,63 @@ int main()
 		}
 		for (int i = 0; i < n; i++)
 		{
-			*(str1 + i) = (char*)malloc(m * sizeof(char));
-			if (!*(str1 + i))
+			*(str + i) = (char*)malloc(m * sizeof(char));
+			if (!*(str + i))
 			{
 				for (int j = 0; j < i; j++)
 				{
-					free(*(str1 + j));
+					free(*(str + j));
 				}
-				free(str1);
-				str1 = 0;
+				free(str);
+				str = 0;
 				break;
 			}
 		}
-		printf_s("Allocate memory for the second array: ");
+		printf_s("Allocate memory for the final array of matched words: ");
 		if (!(scanf_s("%d", &n1)))
 		{
 			rewind(stdin);
 			continue;
 		}
-		str2 = (char*)malloc(n1 * sizeof(char));
-		if (!str2)
+		str_res = (char*)malloc(n1 * sizeof(char));
+		if (!str_res)
 		{
-			free(str2);
+			free(str_res);
 			continue;
 		}
 		printf_s("Allocate memory for the additional line: ");
 		scanf_s("%d", &size);
-		str = (char*)malloc(size * sizeof(char));
-		if (!str)
+		str_dop = (char*)malloc(size * sizeof(char));
+		if (!str_dop)
 		{
 			free(str);
 			continue;
 		}
-	} while (!str1 && !str2 && !str);
-
-
+	} while (!str && !str_dop && !str_res);
     
 	rewind(stdin);
 	for (int i = 0; i < n; i++)
 	{
 		printf_s("Line #%d: ", i + 1);
-		fgets(*(str1 + i), m, stdin);
+		fgets(*(str + i), m, stdin);
 	}
     
-	Repeat(str1, str2, str, n, m);
+	Repeat(str, str_res, str_dop, n, m);
 
-	printf_s("%s", str2);
+	printf_s("The final array: ");
+	printf_s("%s", str_res);
 
+	free(str_dop);
+	free(str_res);
+	for (int i = 0; i < n; i++) free(*(str + i));
 	free(str);
-	free(str2);
-	for (int i = 0; i < n; i++) free(*(str1 + i));
-	free(str1);
 	return 0;
 }
 
-void Repeat(char** st, char* st1, char* str, int s_str, int s_stl)
+void Repeat(char** st, char* st_res, char* st_dop, int s_str, int s_stl)
 {
 	int i = 0, j = 0, i1 = 0, i2 = 0, ii, jj, in, jn, ik, jk;
-	int kol = 0, kol1 = 0;
+	int kol_dop = 0, kol_org = 0;
 	while (i < s_str)
 	{
 		i1 = 0;
@@ -97,15 +96,13 @@ void Repeat(char** st, char* st1, char* str, int s_str, int s_stl)
 		{
 			j++;
 		}
-		in = i; jn = j;                                     //первая буква слова найдена
 		while (*(*(st + i) + j) != ' ' && *(*(st + i) + j))     //цикл прохода по слову
 		{
-			kol++;                               //счётчик количества букв в найденном слове
-			*(str + i1++) = *(*(st + i) + j);    //заполнение доп. строки символами слова из исходной строки
-			j++;                                 //переход к следующему символу
+			kol_org++;                                   //счётчик количества букв в найденном слове
+			*(st_dop + i1++) = *(*(st + i) + j);         //заполнение доп. строки символами слова из исходной строки
+			j++;                                         //переход к следующему символу
 		}
-		*(str + i1) = '\0';
-		ik = i; jk = j - 1;                      //найдена последняя буква слова
+		*(st_dop + i1) = '\0';
 		i1 = 0;                                  //становимся в начало массива для повторного прохода по нему
 		if (*(*(st + i) + j) == '\0')
 		{
@@ -116,28 +113,28 @@ void Repeat(char** st, char* st1, char* str, int s_str, int s_stl)
 
 		while (ii < s_str)
 		{
-			if (*(str + i1) - *(*(st + ii) + jj) == 0)
+			if (*(st_dop + i1) - *(*(st + ii) + jj) == 0)
 			{
 				i1++;
-				kol1++;
+				kol_dop++;
 				jj++;
 			}
 			if (i1 > 0)
 			{
-				if (*(str + i1 - 1) - *(*(st + ii) + jj - 1) != 0 && kol1 == kol)
+				if (*(st_dop + i1 - 1) - *(*(st + ii) + jj - 1) == 0 && kol_dop == kol_org)
 				{
 					i1 = 0;
-					while (*(str + i1)) *(st1 + i2++) = *(str + i1++);
-					*(st1 + i2) = ' ';
-					i2++; *(st1 + i2) = '\0';
-					kol1 = 0;
+					while (*(st_dop + i1)) *(st_res + i2++) = *(st_dop + i1++);
+					*(st_res + i2) = ' ';                              //ставим пробел после слова
+					i2++; *(st_res + i2) = '\0';                       //ставим нуль-символ в конец строки
+					kol_dop = 0;                                       //обнуляем счётчик совпавших букв в доп. строке и в осн. строке
 					break;                                             //выход из цикла, чтобы не было записи того же слова 
 				}
 			}
-			if (*(str + i1) - *(*(st + ii) + jj) != 0)
+			if (*(st_dop + i1) - *(*(st + ii) + jj) != 0)
 			{
 				i1 = 0;
-				kol1 = 0;
+				kol_dop = 0;
 				jj++;
 			}
 
@@ -152,7 +149,7 @@ void Repeat(char** st, char* st1, char* str, int s_str, int s_stl)
 				jj = 0;                              //становимся в начало второго предложения
 			}
 		}
-		kol = 0; 
+		kol_org = 0; 
 
 		if (j >= s_stl)                         //достигнут конец строки
 		{
