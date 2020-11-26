@@ -6,7 +6,8 @@ void Repeat(char**, char*, char *, int, int);
 
 int main()
 {
-	char** str1 = 0, *str = 0, * str2 = 0;
+	char** str1 = 0;
+	char *str = 0, *str2 = 0;
 	int n, m, n1, size;
 	do
 	{
@@ -57,7 +58,7 @@ int main()
 		}
 		printf_s("Allocate memory for the additional line: ");
 		scanf_s("%d", &size);
-		char* str = (char*)malloc(size * sizeof(char));
+		str = (char*)malloc(size * sizeof(char));
 		if (!str)
 		{
 			free(str);
@@ -89,7 +90,7 @@ void Repeat(char** st, char* st1, char* str, int s_str, int s_stl)
 {
 	int i = 0, j = 0, i1 = 0, i2 = 0, ii, jj, in, jn, ik, jk;
 	int kol = 0, kol1 = 0;
-	while (*(st + i) < s_str)
+	while (i < s_str)
 	{
 		i1 = 0;
 		while (*(*(st + i) + j) == ' ')         //цикл пропуска пробелов
@@ -113,9 +114,9 @@ void Repeat(char** st, char* st1, char* str, int s_str, int s_stl)
 		}
 		ii = i; jj = j;                          //запоминаем место, с которого искать повторяющиеся слова
 
-		while (*(st + ii) < s_str)
+		while (ii < s_str)
 		{
-			if (*(str + i1) == *(*(st + ii) + jj))
+			if (*(str + i1) - *(*(st + ii) + jj) == 0)
 			{
 				i1++;
 				kol1++;
@@ -123,16 +124,17 @@ void Repeat(char** st, char* st1, char* str, int s_str, int s_stl)
 			}
 			if (i1 > 0)
 			{
-				if (*(str + i1 - 1) == *(*(st + ii) + jj - 1) && kol1 == kol)
+				if (*(str + i1 - 1) - *(*(st + ii) + jj - 1) != 0 && kol1 == kol)
 				{
 					i1 = 0;
 					while (*(str + i1)) *(st1 + i2++) = *(str + i1++);
 					*(st1 + i2) = ' ';
+					i2++; *(st1 + i2) = '\0';
 					kol1 = 0;
 					break;                                             //выход из цикла, чтобы не было записи того же слова 
 				}
 			}
-			if (*(str + i1) != *(*(st + ii) + jj))
+			if (*(str + i1) - *(*(st + ii) + jj) != 0)
 			{
 				i1 = 0;
 				kol1 = 0;
