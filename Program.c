@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-void Repeat(char**, char*, char *, int, int);
+int Repeat(char**, char*, char *, int, int);
 
 int main()
 {
 	char** str = 0;
 	char *str_dop = 0, *str_res = 0;
-	int n, m, n1, size;
+	int n, m, n1, size, is_matched = 0;
 	do
 	{
 		system("CLS");
@@ -73,11 +73,17 @@ int main()
 		fgets(*(str + i), m, stdin);
 	}
     
-	Repeat(str, str_res, str_dop, n, m);
-
-	printf_s("The final array: ");
-	printf_s("%s", str_res);
-
+	rewind(stdin);
+	is_matched = Repeat(str, str_res, str_dop, n, m);
+	if (is_matched == 0)
+	{
+		printf_s("No matching words were found.");
+	}
+	else
+	{
+		printf_s("The final array: ");
+		printf_s("%s", str_res);
+	}
 	free(str_dop);
 	free(str_res);
 	for (int i = 0; i < n; i++) free(*(str + i));
@@ -85,79 +91,92 @@ int main()
 	return 0;
 }
 
-void Repeat(char** st, char* st_res, char* st_dop, int s_str, int s_stl)
+int Repeat(char** st, char* st_res, char* st_dop, int s_str, int s_stl)
 {
-	int i = 0, j = 0, i1 = 0, i2 = 0, ii, jj, in, jn, ik, jk;
-	int kol_dop = 0, kol_org = 0;
+	int i = 0, j = 0, i_dp = 0, i2 = 0, ii, jj, in, jn, ik, jk;
+	int kol_dop = 0, kol_org = 0, match_w = 0;
 	while (i < s_str)
 	{
-		i1 = 0;
+		i_dp = 0;
 		while (*(*(st + i) + j) == ' ')         //цикл пропуска пробелов
 		{
 			j++;
 		}
-		while (*(*(st + i) + j) != ' ' && *(*(st + i) + j))     //цикл прохода по слову
+		while (*(*(st + i) + j) != ' ' && *(*(st + i) + j))   //цикл прохода по слову
 		{
-			kol_org++;                                   //счётчик количества букв в найденном слове
-			*(st_dop + i1++) = *(*(st + i) + j);         //заполнение доп. строки символами слова из исходной строки
-			j++;                                         //переход к следующему символу
+			kol_org++;                                       //счётчик количества букв в найденном слове
+			*(st_dop + i_dp++) = *(*(st + i) + j);           //заполнение доп. строки символами слова из исходной строки
+			j++;                                             //переход к следующему символу
 		}
-		*(st_dop + i1) = '\0';
-		i1 = 0;                                  //становимся в начало массива для повторного прохода по нему
-		if (*(*(st + i) + j) == '\0')
+		*(st_dop + i_dp) = '\0';
+		i_dp = 0;                                   //становимся в начало массива для повторного прохода по нему
+		if (*(*(st + i) + j) == '\0')               //если достигнут нуль-символ
 		{
-			i++;
-			j = 0;
+			kol_org -= 1;
+			i++;                                    //переход на новую строку массива строк
+			j = 0;                                  //становимся в её начало
 		}
-		ii = i; jj = j;                          //запоминаем место, с которого искать повторяющиеся слова
+		ii = i; jj = j;                            //запоминаем место, с которого искать повторяющиеся слова
 
 		while (ii < s_str)
 		{
-			if (*(st_dop + i1) - *(*(st + ii) + jj) == 0)
+			while (*(st_dop + i_dp) - *(*(st + ii) + jj) == 0 && *(st_dop + i_dp) && *(st_dop + i_dp) != '\n')
 			{
-				i1++;
+				if (jj > 0 && i_dp == 0 && *(st_dop + i_dp))
+				{
+					if (*(st_dop + i_dp) - *(*(st + ii) + jj - 1) != 0 && *(*(st + ii) + jj - 1) != ' ') //если есть слово, в составе которого найдено
+					{                                                                                    //сопадение с искомым словом, то обнуляем 
+						kol_dop = 0;                                                                     //счётчик количества совпавших символов
+						i_dp++;                                                                          //чтобы его сбить 
+						jj++;
+					}
+				}
+				i_dp++;
 				kol_dop++;
 				jj++;
 			}
-			if (i1 > 0)
+			if (*(*(st + ii) + jj) == '\0') kol_dop -= 1;
+			if (i_dp > 0)
 			{
-				if (*(st_dop + i1 - 1) - *(*(st + ii) + jj - 1) == 0 && kol_dop == kol_org)
+				if (*(*(st + ii) + jj) == ' ' && kol_dop == kol_org)
 				{
-					i1 = 0;
-					while (*(st_dop + i1)) *(st_res + i2++) = *(st_dop + i1++);
+					i_dp = 0;
+					while (*(st_dop + i_dp)) *(st_res + i2++) = *(st_dop + i_dp++);
 					*(st_res + i2) = ' ';                              //ставим пробел после слова
 					i2++; *(st_res + i2) = '\0';                       //ставим нуль-символ в конец строки
 					kol_dop = 0;                                       //обнуляем счётчик совпавших букв в доп. строке и в осн. строке
+					match_w++;                                         //кол-во совпавших слов
 					break;                                             //выход из цикла, чтобы не было записи того же слова 
 				}
+				else if (*(*(st + ii) + jj + 1) == '\0' && kol_dop == kol_org)
+				{
+					i_dp = 0;
+					while (*(st_dop + i_dp)) *(st_res + i2++) = *(st_dop + i_dp++);
+					*(st_res + i2) = ' ';                              //ставим пробел после слова
+					i2++; *(st_res + i2) = '\0';                       //ставим нуль-символ в конец строки
+					kol_dop = 0;                                       //обнуляем счётчик совпавших букв в доп. строке и в осн. строке
+					match_w++;                                         //кол-во совпавших слов
+					break;
+
+				}
 			}
-			if (*(st_dop + i1) - *(*(st + ii) + jj) != 0)
+			if (*(st_dop + i_dp) - *(*(st + ii) + jj) != 0)
 			{
-				i1 = 0;
+				i_dp = 0;
 				kol_dop = 0;
 				jj++;
 			}
 
-			if (*(*(st + ii) + jj) == '\0')
+			if (!*(*(st + ii) + jj))
 			{
 				ii++;
 				jj = 0;
 			}
-			if (jj >= s_stl)                         //достигнут конец строки
-			{
-				ii++;                                //переход к новой строке
-				jj = 0;                              //становимся в начало второго предложения
-			}
 		}
-		kol_org = 0; 
-
-		if (j >= s_stl)                         //достигнут конец строки
-		{
-			i++;                                //переход к новой строке
-			j = 0;                              //становимся в начало столбца
-		}
+		kol_org = 0;                //сброс счётчика букв в основной строке 
 	}
-
+	return match_w;
+ 
 	
 
 }
